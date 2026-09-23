@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Avira Store - Auto Print Invoice & Label</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f4f6f8;
+        }
+        /* Screen par button dikhane ke liye */
+        .loading-box {
+            text-align: center;
+            padding: 40px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* A4 Page Layout (Print ke liye) */
+        .print-page {
+            display: none;
+            width: 210mm;
+            height: 297mm;
+            padding: 10mm;
+            box-sizing: border-box;
+            background: white;
+            font-size: 11px;
+            color: #000;
+        }
+
+        /* Top Shipping Label */
+        .shipping-label {
+            border: 1.5px solid #000;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        .top-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+        .top-box { border-right: 1px solid #000; padding-right: 6px; margin-right: 6px; }
+        .barcode-area {
+            text-align: center;
+            font-family: monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin: 6px 0;
+        }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+        .table-custom th, .table-custom td {
+            border: 1px solid #000;
+            padding: 3px 5px;
+            font-size: 10px;
+            text-align: left;
+        }
+        .table-custom th { background: #f2f2f2; }
+
+        /* Bottom Tax Invoice */
+        .tax-invoice {
+            border: 1.5px solid #000;
+            padding: 8px;
+        }
+        .inv-header {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        /* Print Settings */
+        @media print {
+            body * { visibility: hidden; }
+            .print-page, .print-page * { visibility: visible; }
+            .print-page {
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: block !important;
+                width: 100%;
+                margin: 0;
+                padding: 5mm;
+            }
+            .loading-box { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="loading-box">
+    <h2>Avira Store Order Processing...</h2>
+    <p>Aapka slip generate ho raha hai, kripya intezaar karein.</p>
+    <button onclick="window.print()">Print Slip Now</button>
+</div>
+
+<!-- A4 COMBINED PRINT LAYOUT -->
+<div class="print-page" id="printSlip">
+    
+    <!-- TOP: SHIPPING LABEL -->
+    <div class="shipping-label">
+        <div class="top-row">
+            <div class="top-box"><strong>STD</strong></div>
+            <div class="top-box" style="flex-grow: 1;">Delhivery E2E COD</div>
+            <div class="top-box">SURFACE</div>
+            <div><strong>COD</strong></div>
+            <div style="margin-left: auto; border: 1px solid #000; padding: 0 4px;"><strong>E</strong></div>
+        </div>
+        <div style="font-size: 10px;">OD438695588117532400</div>
+        
+        <div style="display: flex; margin-top: 4px;">
+            <div style="width: 35%; border-right: 1px solid #000; padding-right: 4px;">
+                <div style="font-size: 9px;">Ordered through</div>
+                <div style="font-weight: bold; font-size: 11px; margin: 2px 0;">Avira Store</div>
+                <div class="barcode-area" style="font-size: 11px;">||||||||||||||||</div>
+                <div style="font-size: 9px;">AWB: 59311176775853</div>
+                <div style="font-size: 9px; margin-top: 4px;">HBD: 24-09<br>CPD: 01-10</div>
+            </div>
+            <div style="width: 65%; padding-left: 6px;">
+                <div class="barcode-area" style="margin: 0 0 4px 0;">???????<br>???????</div>
+                <div style="font-size: 9px; border-top: 1px solid #000; padding-top: 2px;">
+                    <strong>Shipping/Customer address:</strong><br>
+                    Name: <span id="uiName">Rohan Sharma</span><br>
+                    Address: <span id="uiAddress">Plot No. 45, Sector 18, Gurugram, Haryana - 122001</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="font-size: 9px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; margin-top: 4px;">
+            Sold By: <strong>Avira</strong>, Barwala, Hisar, Haryana - 125121 | GSTIN: 06FEMPA5141D1ZW
+        </div>
+
+        <table class="table-custom" style="margin-top: 4px;">
+            <tr>
+                <th>SKU ID | Description</th>
+                <th>QTY</th>
+            </tr>
+            <tr>
+                <td id="uiProductLabel">Anurag Dry Fruit Cutter & Nut Slicer</td>
+                <td>1</td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; margin-top: 6px;">
+            <div style="font-family: monospace; font-size: 12px;">59311176775853</div>
+            <div style="display: flex; justify-content: space-between; font-size: 9px; margin-top: 2px;">
+                <span>Not for resale.</span>
+                <span id="uiPrintTime">Printed at 1201 hrs, 23/09/26</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="border-bottom: 2px dashed #000; margin: 10px 0;"></div>
+
+    <!-- BOTTOM: TAX INVOICE -->
+    <div class="tax-invoice">
+        <div class="inv-header">
+            <strong>Tax Invoice</strong> &nbsp;|&nbsp; <span style="font-size: 9px;">Avira Store</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 4px;">
+            <div>Order ID: #AV12345 | Date: <span id="uiDate">24 Sep, 2024</span></div>
+            <div>GSTIN: 06FEMPA5141D1ZW</div>
+        </div>
+        <div style="font-size: 9px; margin-bottom: 6px;">
+            <strong>Billed To:</strong> <span id="uiNameInv">Rohan Sharma</span>, <span id="uiAddressInv">Plot No. 45, Sector 18, Gurugram, Haryana - 122001</span>
+        </div>
+
+        <table class="table-custom">
+            <tr>
+                <th>Product Description</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Tax (GST)</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td id="uiProductInv">Anurag Dry Fruit Cutter & Nut Slicer</td>
+                <td>1</td>
+                <td>85.00</td>
+                <td>15.30</td>
+                <td>100.30</td>
+            </tr>
+        </table>
+
+        <div style="text-align: right; font-size: 10px; margin-top: 5px;">
+            <strong>Grand Total: ?<span id="uiTotal">100.30</span></strong>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Website ke URL se data uthane ka code (Jaise: ?name=Rohan&address=Hisar&phone=98765...)
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if(urlParams.has('name')) {
+        const name = urlParams.get('name');
+        const address = urlParams.get('address');
+        const phone = urlParams.get('phone');
+        const product = urlParams.get('product') || 'Anurag Dry Fruit Cutter & Nut Slicer';
+
+        // Values update karna
+        document.getElementById('uiName').innerText = name;
+        document.getElementById('uiAddress').innerText = address + ' (Ph: ' + phone + ')';
+        document.getElementById('uiNameInv').innerText = name;
+        document.getElementById('uiAddressInv').innerText = address;
+        document.getElementById('uiProductLabel').innerText = product;
+        document.getElementById('uiProductInv').innerText = product;
+    }
+
+    // Page khulte hi automatic print trigger karna
+    window.onload = function() {
+        document.getElementById('printSlip').style.display = 'block';
+        window.print();
+    }
+</script>
+
+</body>
+</html>
