@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avira Store - Combined Shipping Label & Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            background: #fff;
+            padding: 20px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .form-section { margin-bottom: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; color: #555; }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #0056b3; }
+
+        /* A4 Page Single Container for Print */
+        #combined-page {
+            display: none;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: auto;
+            background: white;
+            box-sizing: border-box;
+            font-size: 12px;
+            color: #000;
+        }
+
+        /* Top: Shipping Label Box */
+        .shipping-label-box {
+            border: 2px solid #000;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        .label-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .barcode-section {
+            text-align: center;
+            margin: 10px 0;
+            font-family: monospace;
+            letter-spacing: 3px;
+            font-size: 16px;
+        }
+        .address-grid {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 8px 0;
+            margin-top: 8px;
+        }
+
+        /* Bottom: Tax Invoice Box */
+        .tax-invoice-box {
+            border: 2px solid #000;
+            padding: 12px;
+        }
+        .invoice-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        .inv-table th, .inv-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+            font-size: 11px;
+        }
+        .inv-table th { background-color: #eee; }
+        .text-right { text-align: right; }
+
+        /* Print Settings */
+        @media print {
+            body * { visibility: hidden; }
+            #combined-page, #combined-page * { visibility: visible; }
+            #combined-page {
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: block !important;
+                border: none;
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+            }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="no-print form-section">
+        <h2>Avira Store - Order & Combined Print</h2>
+        <div class="form-group">
+            <label>Customer Name:</label>
+            <input type="text" id="custName" placeholder="Rohan Sharma" required>
+        </div>
+        <div class="form-group">
+            <label>Phone Number:</label>
+            <input type="text" id="custPhone" placeholder="+91 9876543210" required>
+        </div>
+        <div class="form-group">
+            <label>Shipping Address:</label>
+            <input type="text" id="custAddress" placeholder="Plot No. 45, Sector 18, Gurugram, Haryana" required>
+        </div>
+        <div class="form-group">
+            <label>Select Product:</label>
+            <select id="productSelect">
+                <option value="Anurag Dry Fruit Cutter & Nut Slicer|85.00">Anurag Dry Fruit Cutter & Nut Slicer - ?85.00</option>
+                <option value="Manual Handheld Refractometer|150.00">Manual Handheld Refractometer - ?150.00</option>
+            </select>
+        </div>
+        <button type="button" onclick="generateCombinedPage()">Generate & Print Single Page</button>
+    </div>
+
+    <!-- COMBINED PAGE (A4 Layout: Top Shipping Label + Bottom Tax Invoice) -->
+    <div id="combined-page">
+        
+        <!-- TOP: SHIPPING LABEL (Box ke bahar lagane ke liye) -->
+        <div class="shipping-label-box">
+            <div class="label-header">
+                <span>STD | Delhivery E2E COD</span>
+                <span>SURFACE - COD</span>
+                <span><strong>E</strong></span>
+            </div>
+            <div style="font-size: 11px;">AWB No: <strong id="lblAwb">OD438695588117532400</strong></div>
+            <div class="barcode-section">
+                |||||| ||||| |||||||||| |||||||<br>
+                <span style="font-size: 12px;" id="lblBarcodeText">59311176775853</span>
+            </div>
+            <div class="address-grid">
+                <div style="width: 50%;">
+                    <strong>SHIP FROM:</strong><br>
+                    Avira Store<br>
+                    Hisar, Haryana - 125121<br>
+                    Ph: +91 9999999999
+                </div>
+                <div style="width: 50%;">
+                    <strong>SHIP TO / RECIPIENT:</strong><br>
+                    Name: <span id="lblCustName"></span><br>
+                    Address: <span id="lblCustAddress"></span><br>
+                    Ph: <span id="lblCustPhone"></span>
+                </div>
+            </div>
+            <div style="margin-top: 6px; font-size: 11px;">
+                <strong>Product:</strong> <span id="lblProduct"></span> | <strong>Qty:</strong> 1 | <strong>COD Amount:</strong> ?<span id="lblCodAmount"></span>
+            </div>
+        </div>
+
+        <div style="border-bottom: 2px dashed #000; margin: 15px 0;"></div>
+
+        <!-- BOTTOM: TAX INVOICE (Box ke andar dalne ke liye) -->
+        <div class="tax-invoice-box">
+            <div class="invoice-title">TAX INVOICE - AVIRA STORE</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
+                <div>
+                    Invoice No: <span id="invNo"></span><br>
+                    Order Date: <span id="invDate"></span>
+                </div>
+                <div>
+                    Sold By: Avira Store, Hisar, Haryana<br>
+                    GSTIN: 06FEMPA5141D1ZW
+                </div>
+            </div>
+            <div style="font-size: 11px; margin-bottom: 6px;">
+                <strong>Billed To:</strong> <span id="invCustName"></span>, <span id="invCustAddress"></span> (Ph: <span id="invCustPhone"></span>)
+            </div>
+
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Price (INR)</th>
+                        <th>Total (INR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td id="invProduct">Dry Fruit Cutter</td>
+                        <td>1</td>
+                        <td id="invPrice">85.00</td>
+                        <td id="invTotal">85.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table style="width: 100%; margin-top: 6px; font-size: 11px;">
+                <tr><td>Subtotal:</td><td class="text-right" id="invSubtotal">?85.00</td></tr>
+                <tr><td>Delivery Fee:</td><td class="text-right">?50.00</td></tr>
+                <tr><td><strong>Grand Total:</strong></td><td class="text-right"><strong id="invGrandTotal">?135.00</strong></td></tr>
+            </table>
+            <p style="text-align: center; font-size: 9px; margin-top: 15px; color: #444;">
+                This is a computer-generated invoice for Avira Store.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function generateCombinedPage() {
+    const name = document.getElementById('custName').value;
+    const phone = document.getElementById('custPhone').value;
+    const address = document.getElementById('custAddress').value;
+    const productData = document.getElementById('productSelect').value.split('|');
+    
+    const productName = productData[0];
+    const productPrice = parseFloat(productData[1]);
+    const deliveryFee = 50.00;
+    const grandTotal = productPrice + deliveryFee;
+
+    if(!name || !phone || !address) {
+        alert('Kripya sabhi details bharein!');
+        return;
+    }
+
+    // Random IDs generate karna
+    const randomId = Math.floor(100000 + Math.random() * 900000);
+
+    // Shipping Label Values
+    document.getElementById('lblCustName').innerText = name;
+    document.getElementById('lblCustAddress').innerText = address;
+    document.getElementById('lblCustPhone').innerText = phone;
+    document.getElementById('lblProduct').innerText = productName;
+    document.getElementById('lblCodAmount').innerText = grandTotal.toFixed(2);
+    document.getElementById('lblBarcodeText').innerText = '59311' + randomId;
+
+    // Tax Invoice Values
+    document.getElementById('invNo').innerText = 'AVINV-' + randomId;
+    document.getElementById('invDate').innerText = new Date().toLocaleDateString();
+    document.getElementById('invCustName').innerText = name;
+    document.getElementById('invCustAddress').innerText = address;
+    document.getElementById('invCustPhone').innerText = phone;
+    document.getElementById('invProduct').innerText = productName;
+    document.getElementById('invPrice').innerText = productPrice.toFixed(2);
+    document.getElementById('invTotal').innerText = productPrice.toFixed(2);
+    document.getElementById('invSubtotal').innerText = '?' + productPrice.toFixed(2);
+    document.getElementById('invGrandTotal').innerText = '?' + grandTotal.toFixed(2);
+
+    // Page dikhakar print dialog kholna
+    document.getElementById('combined-page').style.display = 'block';
+    window.print();
+}
+</script>
+
+</body>
+</html>
